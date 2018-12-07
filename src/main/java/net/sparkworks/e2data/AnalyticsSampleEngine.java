@@ -1,5 +1,7 @@
 package net.sparkworks.e2data;
 
+import uk.ac.manchester.tornado.api.TaskSchedule;
+
 import java.util.Random;
 
 public class AnalyticsSampleEngine {
@@ -29,9 +31,15 @@ public class AnalyticsSampleEngine {
     
     private static void executeAnalytics(final String arg, final double[] samples) {
         final AnalyticsProcessor analyticsProcessor = AnalyticsProcessor.getInstance();
+        final double[] result = null;
+        TaskSchedule task = new TaskSchedule("s0")
+                .streamIn(samples)
+                .task("t0", analyticsProcessor::computeMin, samples, result)
+                .streamOut(result);
+        ExecutionTime.printTime(() -> task.execute());
         System.out
-                .println(String.format("Min of %s random samples is %f", arg,
-                        ExecutionTime.printTime(() -> analyticsProcessor.computeMin(samples))));
+                .println(String.format(" computing Min of %s random samples with result %f", arg, result[0]));
+/*
         System.out
                 .println(String.format("Max of %s random samples is %f", arg,
                         ExecutionTime.printTime(() -> analyticsProcessor.computeMax(samples))));
@@ -41,6 +49,7 @@ public class AnalyticsSampleEngine {
         System.out
                 .println(String.format("Avg of %s random samples is %f", arg,
                         ExecutionTime.printTime(() -> analyticsProcessor.computeAvg(samples))));
+*/
     }
     
     private static boolean isNumeric(final String arg) {
