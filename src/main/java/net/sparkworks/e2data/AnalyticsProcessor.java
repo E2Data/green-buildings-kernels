@@ -45,10 +45,11 @@ public class AnalyticsProcessor {
         }
     }
     
-    public double computeAvg(final double[] values) {
+    public void computeAvg(final double[] values, double[] result) {
+        result[0] = -1;
         double[] sumResult = null;
         computeSum(values, sumResult);
-        return sumResult[0] / values.length;
+        result[0] = sumResult[0] / values.length;
     }
     
 }

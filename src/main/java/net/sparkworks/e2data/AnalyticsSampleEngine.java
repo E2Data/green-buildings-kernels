@@ -32,13 +32,38 @@ public class AnalyticsSampleEngine {
     private static void executeAnalytics(final String arg, final double[] samples) {
         final AnalyticsProcessor analyticsProcessor = AnalyticsProcessor.getInstance();
         final double[] result = null;
-        TaskSchedule task = new TaskSchedule("s0")
+        TaskSchedule task0 = new TaskSchedule("s0")
                 .streamIn(samples)
                 .task("t0", analyticsProcessor::computeMin, samples, result)
                 .streamOut(result);
-        ExecutionTime.printTime(() -> task.execute());
+        ExecutionTime.printTime(() -> task0.execute());
         System.out
                 .println(String.format(" computing Min of %s random samples with result %f", arg, result[0]));
+    
+        TaskSchedule task1 = new TaskSchedule("s1")
+                .streamIn(samples)
+                .task("t1", analyticsProcessor::computeMax, samples, result)
+                .streamOut(result);
+        ExecutionTime.printTime(() -> task1.execute());
+        System.out
+                .println(String.format(" computing Max of %s random samples with result %f", arg, result[0]));
+        
+        TaskSchedule task2 = new TaskSchedule("s2")
+                .streamIn(samples)
+                .task("t2", analyticsProcessor::computeSum, samples, result)
+                .streamOut(result);
+        ExecutionTime.printTime(() -> task2.execute());
+        System.out
+                .println(String.format(" computing Sum of %s random samples with result %f", arg, result[0]));
+    
+        TaskSchedule task3 = new TaskSchedule("s3")
+                .streamIn(samples)
+                .task("t3", analyticsProcessor::computeAvg, samples, result)
+                .streamOut(result);
+        ExecutionTime.printTime(() -> task3.execute());
+        System.out
+                .println(String.format(" computing Avg of %s random samples with result %f", arg, result[0]));
+        
 /*
         System.out
                 .println(String.format("Max of %s random samples is %f", arg,
