@@ -65,15 +65,21 @@ public class AnalyticsSampleEngine {
                 .println(String.format(" computing Avg of %s random samples with result %f", arg, result[0]));
         
 /*
+        ExecutionTime.printTime(() -> AnalyticsProcessor.computeMin(samples, result));
         System.out
-                .println(String.format("Max of %s random samples is %f", arg,
-                        ExecutionTime.printTime(() -> analyticsProcessor.computeMax(samples))));
+                .println(String.format(" computing Min of %s random samples with result %f", arg, result[0]));
+    
+        ExecutionTime.printTime(() -> AnalyticsProcessor.computeMax(samples, result));
         System.out
-                .println(String.format("Sum of %s random samples is %f", arg,
-                        ExecutionTime.printTime(() -> analyticsProcessor.computeSum(samples))));
+                .println(String.format(" computing Max of %s random samples with result %f", arg, result[0]));
+    
+        ExecutionTime.printTime(() -> AnalyticsProcessor.computeSum(samples, result));
         System.out
-                .println(String.format("Avg of %s random samples is %f", arg,
-                        ExecutionTime.printTime(() -> analyticsProcessor.computeAvg(samples))));
+                .println(String.format(" computing Sum of %s random samples with result %f", arg, result[0]));
+    
+        ExecutionTime.printTime(() -> AnalyticsProcessor.computeAvg(samples, result));
+        System.out
+                .println(String.format(" computing Avg of %s random samples with result %f", arg, result[0]));
 */
     }
     

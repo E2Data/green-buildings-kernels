@@ -9,8 +9,8 @@ public class ExecutionTime {
         try {
             Instant start = Instant.now();
             task.run();
-            System.out.print(String.format("Execution time : %s of: ",
-                    Duration.between(start, Instant.now()).toString()));
+            System.out.print(String.format("Execution time: %d ms of: ",
+                    Duration.between(start, Instant.now()).toMillis()));
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -48,9 +48,8 @@ public class AnalyticsProcessor {
     }
     
     public static void computeAvg(final double[] values, double[] result) {
-        double[] sumResult = new double[0];
-        computeSum(values, sumResult);
-        result[0] = sumResult[0] / values.length;
+        computeSum(values, result);
+        result[0] = result[0] / values.length;
     }
     
 }
