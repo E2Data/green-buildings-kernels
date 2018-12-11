@@ -7,6 +7,7 @@ import java.util.Objects;
 
 public class AnalyticsProcessor {
     
+/*
     private static AnalyticsProcessor instance;
     
     private AnalyticsProcessor() {}
@@ -17,10 +18,11 @@ public class AnalyticsProcessor {
         }
         return instance;
     }
+*/
     
     
     
-    public void computeMin(final double[] values, final @Reduce double[] result) {
+    public static void computeMin(final double[] values, final @Reduce double[] result) {
         result[0] = values[0];
         for (@Parallel int i = 1; i < values.length; i++) {
             if (values[i] < result[0]) {
@@ -29,7 +31,7 @@ public class AnalyticsProcessor {
         }
     }
     
-    public void computeMax(final double[] values, final @Reduce double[] result) {
+    public static void computeMax(final double[] values, final @Reduce double[] result) {
         result[0] = values[0];
         for (@Parallel int i = 1; i < values.length; i++) {
             if (values[i] > result[0]) {
@@ -38,16 +40,15 @@ public class AnalyticsProcessor {
         }
     }
     
-    public void computeSum(final double[] values, final @Reduce double[] result) {
+    public static void computeSum(final double[] values, final @Reduce double[] result) {
         result[0] = 0;
         for (@Parallel int i = 0; i < values.length; i++) {
             result[0] += values[i];
         }
     }
     
-    public void computeAvg(final double[] values, double[] result) {
-        result[0] = -1;
-        double[] sumResult = null;
+    public static void computeAvg(final double[] values, double[] result) {
+        double[] sumResult = new double[0];
         computeSum(values, sumResult);
         result[0] = sumResult[0] / values.length;
     }

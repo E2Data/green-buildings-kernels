@@ -30,11 +30,11 @@ public class AnalyticsSampleEngine {
     }
     
     private static void executeAnalytics(final String arg, final double[] samples) {
-        final AnalyticsProcessor analyticsProcessor = AnalyticsProcessor.getInstance();
-        final double[] result = null;
+//        final AnalyticsProcessor analyticsProcessor = AnalyticsProcessor.getInstance();
+        final double[] result = new double[1];
         TaskSchedule task0 = new TaskSchedule("s0")
                 .streamIn(samples)
-                .task("t0", analyticsProcessor::computeMin, samples, result)
+                .task("t0", AnalyticsProcessor::computeMin, samples, result)
                 .streamOut(result);
         ExecutionTime.printTime(() -> task0.execute());
         System.out
@@ -42,7 +42,7 @@ public class AnalyticsSampleEngine {
     
         TaskSchedule task1 = new TaskSchedule("s1")
                 .streamIn(samples)
-                .task("t1", analyticsProcessor::computeMax, samples, result)
+                .task("t1", AnalyticsProcessor::computeMax, samples, result)
                 .streamOut(result);
         ExecutionTime.printTime(() -> task1.execute());
         System.out
@@ -50,7 +50,7 @@ public class AnalyticsSampleEngine {
         
         TaskSchedule task2 = new TaskSchedule("s2")
                 .streamIn(samples)
-                .task("t2", analyticsProcessor::computeSum, samples, result)
+                .task("t2", AnalyticsProcessor::computeSum, samples, result)
                 .streamOut(result);
         ExecutionTime.printTime(() -> task2.execute());
         System.out
@@ -58,7 +58,7 @@ public class AnalyticsSampleEngine {
     
         TaskSchedule task3 = new TaskSchedule("s3")
                 .streamIn(samples)
-                .task("t3", analyticsProcessor::computeAvg, samples, result)
+                .task("t3", AnalyticsProcessor::computeAvg, samples, result)
                 .streamOut(result);
         ExecutionTime.printTime(() -> task3.execute());
         System.out
