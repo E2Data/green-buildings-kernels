@@ -7,10 +7,10 @@ public class ExecutionTime {
     
     public static void printTime(Runnable task) {
         try {
-            Instant start = Instant.now();
+            
+            long start = System.nanoTime();
             task.run();
-            System.out.print(String.format("Execution time: %d ms of: ",
-                    Duration.between(start, Instant.now()).toMillis()));
+            System.out.print("Execution time: " + (System.nanoTime() - start) + " ns of: ");
         } catch (Exception e) {
             e.printStackTrace();
         }
