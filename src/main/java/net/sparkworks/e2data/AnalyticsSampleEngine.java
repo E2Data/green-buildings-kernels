@@ -16,7 +16,7 @@ public class AnalyticsSampleEngine {
         }
         final String arg = args[0];
         if (isNumeric(arg)) {
-            final double[] samples = generateRandomValuesOfSize(Long.parseLong(arg));
+            final double[] samples = generateRandomValuesOfSizeWithOutliers(Integer.parseInt(arg));
             executeAnalytics(arg, samples);
         } else {
             try {
@@ -63,8 +63,20 @@ public class AnalyticsSampleEngine {
         ExecutionTime.printTime(() -> task3.execute());
         System.out
                 .println(String.format(" computing Avg of %s random samples with result %f", arg, result[0]));
+    
+        final double[] taskOutliersResult = new double[3];
+        TaskSchedule task4 = new TaskSchedule("s4")
+                .streamIn(samples)
+                .task("t4", AnalyticsProcessor::removeOutliers, samples, taskOutliersResult)
+                .streamOut(result);
+        ExecutionTime.printTime(() -> task4.execute());
+        System.out
+                .println(String
+                        .format(" computing Outliers of %s random samples with mean %f, standard deviation %f and outliers count %f",
+                                arg, taskOutliersResult[0], taskOutliersResult[1], taskOutliersResult[2]));
+    
         
-/*
+        // vanilla
         ExecutionTime.printTime(() -> AnalyticsProcessor.computeMin(samples, result));
         System.out
                 .println(String.format(" computing Min of %s random samples with result %f", arg, result[0]));
@@ -80,7 +92,11 @@ public class AnalyticsSampleEngine {
         ExecutionTime.printTime(() -> AnalyticsProcessor.computeAvg(samples, result));
         System.out
                 .println(String.format(" computing Avg of %s random samples with result %f", arg, result[0]));
-*/
+    
+        final double[] outliersResult = new double[3];
+        ExecutionTime.printTime(() -> AnalyticsProcessor.removeOutliers(samples, outliersResult));
+        System.out
+                .println(String.format(" computing Outliers of %s random samples with mean %f, standard deviation %f and outliers count %f", arg, outliersResult[0], outliersResult[1], outliersResult[2]));
     }
     
     private static boolean isNumeric(final String arg) {
@@ -89,6 +105,13 @@ public class AnalyticsSampleEngine {
     
     private static double[] generateRandomValuesOfSize(final long size) {
         return new Random().doubles(size, LOWER_RANDOM_BOUND, UPPER_RANDOM_BOUND).toArray();
+    }
+    
+    private static double[] generateRandomValuesOfSizeWithOutliers(final int size) {
+        final double[] doubles = new Random().doubles(size, LOWER_RANDOM_BOUND, UPPER_RANDOM_BOUND).toArray();
+        doubles[(size - 2)] = UPPER_RANDOM_BOUND + (5 * UPPER_RANDOM_BOUND);
+        doubles[(size - 1)] = UPPER_RANDOM_BOUND + (10 * UPPER_RANDOM_BOUND);
+        return doubles;
     }
     
 }

@@ -52,4 +52,43 @@ public class AnalyticsProcessor {
         result[0] = result[0] / values.length;
     }
     
+    public static void computeStandardDeviation(final double values[], final @Reduce double[] result) {
+        double sum = 0.0, standardDeviation = 0.0;
+        int length = values.length;
+        
+        for (@Parallel int i = 0; i < length; i++) {
+            sum += values[i];
+        }
+        
+        double mean = sum / length;
+        
+        for (@Parallel int i = 0; i < length; i++) {
+            standardDeviation += Math.pow(values[i] - mean, 2);
+        }
+        
+        result[1] = Math.sqrt(standardDeviation / length);
+    }
+    
+    public static void computeMean(final double values[], final @Reduce double[] result) {
+        double sum = 0;
+        for (@Parallel int i = 0; i < values.length; i++) {
+            sum += values[i];
+        }
+        result[0] = sum / values.length;
+    }
+    
+    public static void removeOutliers(final double values[], final @Reduce double[] result) {
+        computeMean(values, result);
+        computeStandardDeviation(values, result);
+        double min = result[0] - (2 * result[1]);
+        double max = result[0] + (2 * result[1]);
+        long count = 0;
+        for (@Parallel int i = 0; i < values.length; i++) {
+            if (values[i] > max || values[i] < min) {
+                count++;
+            }
+        }
+        result[2] = count;
+    }
+    
 }
