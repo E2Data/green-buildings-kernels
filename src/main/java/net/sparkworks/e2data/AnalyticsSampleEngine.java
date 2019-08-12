@@ -29,6 +29,12 @@ public class AnalyticsSampleEngine {
         }
     }
     
+    private static void warmUp(TaskSchedule taskSchedule) {
+        for (int i = 0; i < 50; i++) {
+            taskSchedule.execute();
+        }
+    }
+    
     private static void executeAnalytics(final String arg, final double[] samples) {
 //        final AnalyticsProcessor analyticsProcessor = AnalyticsProcessor.getInstance();
         final double[] result = new double[1];
@@ -36,6 +42,7 @@ public class AnalyticsSampleEngine {
                 .streamIn(samples)
                 .task("t0", AnalyticsProcessor::computeMin, samples, result)
                 .streamOut(result);
+        warmUp(task0);
         ExecutionTime.printTime(() -> task0.execute());
         System.out
                 .println(String.format(" computing Min of %s random samples with result %f", arg, result[0]));
@@ -44,6 +51,7 @@ public class AnalyticsSampleEngine {
                 .streamIn(samples)
                 .task("t1", AnalyticsProcessor::computeMax, samples, result)
                 .streamOut(result);
+        warmUp(task1);
         ExecutionTime.printTime(() -> task1.execute());
         System.out
                 .println(String.format(" computing Max of %s random samples with result %f", arg, result[0]));
@@ -52,6 +60,7 @@ public class AnalyticsSampleEngine {
                 .streamIn(samples)
                 .task("t2", AnalyticsProcessor::computeSum, samples, result)
                 .streamOut(result);
+        warmUp(task2);
         ExecutionTime.printTime(() -> task2.execute());
         System.out
                 .println(String.format(" computing Sum of %s random samples with result %f", arg, result[0]));
@@ -60,6 +69,7 @@ public class AnalyticsSampleEngine {
                 .streamIn(samples)
                 .task("t3", AnalyticsProcessor::computeAvg, samples, result)
                 .streamOut(result);
+        warmUp(task3);
         ExecutionTime.printTime(() -> task3.execute());
         System.out
                 .println(String.format(" computing Avg of %s random samples with result %f", arg, result[0]));
@@ -82,8 +92,11 @@ public class AnalyticsSampleEngine {
                 .task("t4.3", AnalyticsProcessor::tornadoRemoveOutliers, samples, taskOutliersResult)
                 .streamOut(taskOutliersResult);
     
+        warmUp(task41);
         task41.execute();
+        warmUp(task42);
         task42.execute();
+        warmUp(task4);
         ExecutionTime.printTime(() -> task4.execute());
         System.out
                 .println(String
