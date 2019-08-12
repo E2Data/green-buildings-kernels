@@ -74,31 +74,6 @@ public class AnalyticsSampleEngine {
                 .println(String
                         .format(" computing Outliers of %s random samples with mean %f, standard deviation %f and outliers count %f",
                                 arg, taskOutliersResult[0], taskOutliersResult[1], taskOutliersResult[2]));
-    
-        
-        // vanilla
-/*
-        ExecutionTime.printTime(() -> AnalyticsProcessor.computeMin(samples, result));
-        System.out
-                .println(String.format(" computing Min of %s random samples with result %f", arg, result[0]));
-    
-        ExecutionTime.printTime(() -> AnalyticsProcessor.computeMax(samples, result));
-        System.out
-                .println(String.format(" computing Max of %s random samples with result %f", arg, result[0]));
-    
-        ExecutionTime.printTime(() -> AnalyticsProcessor.computeSum(samples, result));
-        System.out
-                .println(String.format(" computing Sum of %s random samples with result %f", arg, result[0]));
-    
-        ExecutionTime.printTime(() -> AnalyticsProcessor.computeAvg(samples, result));
-        System.out
-                .println(String.format(" computing Avg of %s random samples with result %f", arg, result[0]));
-    
-        final double[] outliersResult = new double[3];
-        ExecutionTime.printTime(() -> AnalyticsProcessor.removeOutliers(samples, outliersResult));
-        System.out
-                .println(String.format(" computing Outliers of %s random samples with mean %f, standard deviation %f and outliers count %f", arg, outliersResult[0], outliersResult[1], outliersResult[2]));
-*/
     }
     
     private static boolean isNumeric(final String arg) {
