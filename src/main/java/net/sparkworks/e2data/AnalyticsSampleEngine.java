@@ -77,6 +77,7 @@ public class AnalyticsSampleEngine {
     
         
         // vanilla
+/*
         ExecutionTime.printTime(() -> AnalyticsProcessor.computeMin(samples, result));
         System.out
                 .println(String.format(" computing Min of %s random samples with result %f", arg, result[0]));
@@ -97,6 +98,7 @@ public class AnalyticsSampleEngine {
         ExecutionTime.printTime(() -> AnalyticsProcessor.removeOutliers(samples, outliersResult));
         System.out
                 .println(String.format(" computing Outliers of %s random samples with mean %f, standard deviation %f and outliers count %f", arg, outliersResult[0], outliersResult[1], outliersResult[2]));
+*/
     }
     
     private static boolean isNumeric(final String arg) {
