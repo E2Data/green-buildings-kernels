@@ -65,10 +65,25 @@ public class AnalyticsSampleEngine {
                 .println(String.format(" computing Avg of %s random samples with result %f", arg, result[0]));
     
         final double[] taskOutliersResult = new double[3];
-        TaskSchedule task4 = new TaskSchedule("s4")
+        TaskSchedule task41 = new TaskSchedule("s41")
                 .streamIn(samples)
-                .task("t4", AnalyticsProcessor::removeOutliers, samples, taskOutliersResult)
-                .streamOut(result);
+                .task("t4.1", AnalyticsProcessor::computeMean, samples, taskOutliersResult)
+                .streamOut(taskOutliersResult);
+        taskOutliersResult[0] = taskOutliersResult[0] / samples.length;
+        
+        TaskSchedule task42 = new TaskSchedule("s42")
+                .streamIn(samples)
+                .task("t4.2", AnalyticsProcessor::computeStandardDeviation, samples, taskOutliersResult)
+                .streamOut(taskOutliersResult);
+        taskOutliersResult[1] = Math.sqrt(taskOutliersResult[1] / samples.length);
+        
+        TaskSchedule task4 = new TaskSchedule("s43")
+                .streamIn(samples)
+                .task("t4.3", AnalyticsProcessor::tornadoRemoveOutliers, samples, taskOutliersResult)
+                .streamOut(taskOutliersResult);
+    
+        task41.execute();
+        task42.execute();
         ExecutionTime.printTime(() -> task4.execute());
         System.out
                 .println(String
