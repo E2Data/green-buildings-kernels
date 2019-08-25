@@ -1,10 +1,6 @@
 package net.sparkworks.e2data;
 
-import com.sun.tools.javac.util.Assert;
-import uk.ac.manchester.tornado.api.TaskSchedule;
-
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Random;
 
