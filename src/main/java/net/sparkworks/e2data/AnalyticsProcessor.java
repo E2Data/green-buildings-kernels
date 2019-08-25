@@ -21,7 +21,6 @@ public class AnalyticsProcessor {
 */
     
     
-    
     public static void computeMin(final double[] values, final @Reduce double[] result) {
         result[0] = values[0];
         for (@Parallel int i = 1; i < values.length; i++) {
@@ -53,33 +52,42 @@ public class AnalyticsProcessor {
     }
     
     public static void computeStandardDeviation(final double values[], final @Reduce double[] result) {
-        double sum = 0.0, standardDeviation = 0.0;
         int length = values.length;
         
-        for (@Parallel int i = 0; i < length; i++) {
-            sum += values[i];
-        }
-        
-        double mean = sum / length;
+        double mean = result[0] / length;
         
         for (@Parallel int i = 0; i < length; i++) {
-            standardDeviation += Math.pow(values[i] - mean, 2);
+            result[1] += Math.pow(values[i] - mean, 2);
         }
-        
-        result[1] = Math.sqrt(standardDeviation / length);
     }
     
     public static void computeMean(final double values[], final @Reduce double[] result) {
-        double sum = 0;
         for (@Parallel int i = 0; i < values.length; i++) {
-            sum += values[i];
+            result[0] += values[i];
         }
-        result[0] = sum / values.length;
     }
     
     public static void removeOutliers(final double values[], final @Reduce double[] result) {
         computeMean(values, result);
+        result[0] = result[0] / values.length;
+        // result[0] holds the mean value now
         computeStandardDeviation(values, result);
+        result[1] = Math.sqrt(result[1] / values.length);
+        // result[1] holds the standard deviation now
+        double min = result[0] - (2 * result[1]);
+        double max = result[0] + (2 * result[1]);
+        long count = 0;
+        for (@Parallel int i = 0; i < values.length; i++) {
+            if (values[i] > max || values[i] < min) {
+                count++;
+            }
+        }
+        result[2] = count;
+    }
+    
+    public static void tornadoRemoveOutliers(final double values[], final @Reduce double[] result) {
+        // result[0] holds the mean value now
+        // result[1] holds the standard deviation now
         double min = result[0] - (2 * result[1]);
         double max = result[0] + (2 * result[1]);
         long count = 0;

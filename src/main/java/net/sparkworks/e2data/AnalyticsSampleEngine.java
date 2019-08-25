@@ -1,7 +1,11 @@
 package net.sparkworks.e2data;
 
+import com.sun.tools.javac.util.Assert;
 import uk.ac.manchester.tornado.api.TaskSchedule;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Objects;
 import java.util.Random;
 
 public class AnalyticsSampleEngine {
@@ -30,28 +34,45 @@ public class AnalyticsSampleEngine {
     }
     
     private static void executeAnalytics(final String arg, final double[] samples) {
+        final double min = Arrays.stream(samples).min().getAsDouble();
+        final double max = Arrays.stream(samples).max().getAsDouble();
+        final double sum = Arrays.stream(samples).sum();
+        final double average = Arrays.stream(samples).average().getAsDouble();
+        
         final double[] result = new double[1];
         // vanilla
         ExecutionTime.printTime(() -> AnalyticsProcessor.computeMin(samples, result));
         System.out
                 .println(String.format(" computing Min of %s random samples with result %f", arg, result[0]));
-    
+        assert Objects.equals(Double.valueOf(result[0]), Double.valueOf(min));
+        
         ExecutionTime.printTime(() -> AnalyticsProcessor.computeMax(samples, result));
         System.out
                 .println(String.format(" computing Max of %s random samples with result %f", arg, result[0]));
-    
+        assert Objects.equals(Double.valueOf(result[0]), Double.valueOf(max));
+        
         ExecutionTime.printTime(() -> AnalyticsProcessor.computeSum(samples, result));
         System.out
                 .println(String.format(" computing Sum of %s random samples with result %f", arg, result[0]));
-    
+        assert Objects.equals(Double.valueOf(result[0]), Double.valueOf(sum));
+        
         ExecutionTime.printTime(() -> AnalyticsProcessor.computeAvg(samples, result));
         System.out
                 .println(String.format(" computing Avg of %s random samples with result %f", arg, result[0]));
-    
+        assert Objects.equals(Double.valueOf(result[0]), Double.valueOf(average));
+        
         final double[] outliersResult = new double[3];
-        ExecutionTime.printTime(() -> AnalyticsProcessor.removeOutliers(samples, outliersResult));
+        ExecutionTime.printTime(() -> {
+            AnalyticsProcessor.computeMean(samples, outliersResult);
+            outliersResult[0] = outliersResult[0] / samples.length;
+            AnalyticsProcessor.computeStandardDeviation(samples, outliersResult);
+            outliersResult[1] = Math.sqrt(outliersResult[1] / samples.length);
+            AnalyticsProcessor.tornadoRemoveOutliers(samples, outliersResult);
+        });
         System.out
-                .println(String.format(" computing Outliers of %s random samples with mean %f, standard deviation %f and outliers count %f", arg, outliersResult[0], outliersResult[1], outliersResult[2]));
+                .println(String
+                        .format(" computing Outliers of %s random samples with mean %f, standard deviation %f and outliers count %f",
+                                arg, outliersResult[0], outliersResult[1], outliersResult[2]));
     }
     
     private static boolean isNumeric(final String arg) {
