@@ -83,29 +83,28 @@ public class AnalyticsSampleEngine {
         TaskSchedule task41 = new TaskSchedule("s41")
                 .streamIn(samples)
                 .task("t4.1", AnalyticsProcessor::computeMean, samples, taskOutliersResult)
+                .task("t4.2", AnalyticsProcessor::computeStandardDeviation, samples, taskOutliersResult)
+                .task("t4.3", AnalyticsProcessor::tornadoRemoveOutliers, samples, taskOutliersResult)
                 .streamOut(taskOutliersResult);
-        taskOutliersResult[0] = taskOutliersResult[0] / samples.length;
+//        task41.execute();
+//        taskOutliersResult[0] = taskOutliersResult[0] / samples.length;
         
+/*
         TaskSchedule task42 = new TaskSchedule("s42")
                 .streamIn(samples)
                 .task("t4.2", AnalyticsProcessor::computeStandardDeviation, samples, taskOutliersResult)
                 .streamOut(taskOutliersResult);
+        task42.execute();
         taskOutliersResult[1] = Math.sqrt(taskOutliersResult[1] / samples.length);
         
         TaskSchedule task4 = new TaskSchedule("s43")
                 .streamIn(samples)
                 .task("t4.3", AnalyticsProcessor::tornadoRemoveOutliers, samples, taskOutliersResult)
                 .streamOut(taskOutliersResult);
-    
-        task41.warmup();
-        //warmUp(task41);
-        task41.execute();
-        task42.warmup();
-        //warmUp(task42);
-        task42.execute();
+        
         task4.warmup();
-        //warmUp(task4);
-        ExecutionTime.printTime(() -> task4.execute());
+*/
+        ExecutionTime.printTime(() -> task41.execute());
         System.out
                 .println(String
                         .format(" computing Outliers of %s random samples with mean %f, standard deviation %f and outliers count %f",

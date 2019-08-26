@@ -84,6 +84,7 @@ public class AnalyticsProcessor {
     }
     
     public static void tornadoRemoveOutliers(final double values[], double[] result) {
+        result[1] = Math.sqrt(result[1] / values.length);
         // result[0] holds the mean value now
         // result[1] holds the stabdard deviation now
         double min = result[0] - (2 * result[1]);
