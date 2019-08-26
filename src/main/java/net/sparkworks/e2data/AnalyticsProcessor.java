@@ -51,11 +51,10 @@ public class AnalyticsProcessor {
     
     public static void computeStandardDeviation(final double values[], @Reduce double[] result) {
         int length = values.length;
-        
-        double mean = result[0] / length;
+        result[0] = result[0] / length;
         
         for (@Parallel int i = 0; i < length; i++) {
-            result[1] += Math.pow(values[i] - mean, 2);
+            result[1] += Math.pow(values[i] - result[0], 2);
         }
     }
     
@@ -89,13 +88,13 @@ public class AnalyticsProcessor {
         // result[1] holds the stabdard deviation now
         double min = result[0] - (2 * result[1]);
         double max = result[0] + (2 * result[1]);
+        result[2] = 0;
         long count = 0;
         for (@Parallel int i = 0; i < values.length; i++) {
             if (values[i] > max || values[i] < min) {
-                count++;
+                result[2]++;
             }
         }
-        result[2] = count;
     }
     
 }
