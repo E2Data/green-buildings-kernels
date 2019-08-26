@@ -38,25 +38,36 @@ public class AnalyticsSampleEngine {
     private static void executeAnalytics(final String arg, final double[] samples) {
 //        final AnalyticsProcessor analyticsProcessor = AnalyticsProcessor.getInstance();
         final double[] result = new double[1];
+    
+        final double[] jvmresult = new double[1];
+        
         TaskSchedule task0 = new TaskSchedule("s0")
                 .streamIn(samples)
                 .task("t0", AnalyticsProcessor::computeMin, samples, result)
                 .streamOut(result);
         task0.warmup();
         //warmUp(task0);
-        ExecutionTime.printTime(() -> task0.execute());
+        task0.execute();
         System.out
-                .println(String.format(" computing Min of %s random samples with result %f", arg, result[0]));
-    
+                .println(String.format("TornadoVM computing Min of %s random samples with result %f", arg, result[0]));
+        
+        ExecutionTime.printTime(() -> AnalyticsProcessor.computeMin(samples, jvmresult));
+        System.out
+                .println(String.format(" JVM computing Min of %s random samples with result %f", arg, jvmresult[0]));
+        
         TaskSchedule task1 = new TaskSchedule("s1")
                 .streamIn(samples)
                 .task("t1", AnalyticsProcessor::computeMax, samples, result)
                 .streamOut(result);
         task1.warmup();
         //warmUp(task1);
-        ExecutionTime.printTime(() -> task1.execute());
+        task1.execute();
         System.out
-                .println(String.format(" computing Max of %s random samples with result %f", arg, result[0]));
+                .println(String.format("TornadoVM computing Max of %s random samples with result %f", arg, result[0]));
+        
+        ExecutionTime.printTime(() -> AnalyticsProcessor.computeMax(samples, jvmresult));
+        System.out
+                .println(String.format(" JVM computing Max of %s random samples with result %f", arg, jvmresult[0]));
         
         TaskSchedule task2 = new TaskSchedule("s2")
                 .streamIn(samples)
@@ -64,29 +75,45 @@ public class AnalyticsSampleEngine {
                 .streamOut(result);
         task2.warmup();
         //warmUp(task2);
-        ExecutionTime.printTime(() -> task2.execute());
+        task2.execute();
         System.out
-                .println(String.format(" computing Sum of %s random samples with result %f", arg, result[0]));
+                .println(String.format("TornadoVM computing Sum of %s random samples with result %f", arg, result[0]));
+        
+        ExecutionTime.printTime(() -> AnalyticsProcessor.computeSum(samples, jvmresult));
+        System.out
+                .println(String.format(" JVM computing Sum of %s random samples with result %f", arg, jvmresult[0]));
     
-        double avgResult = -1;
+        double[] avgResult = new double[] {-1};
         TaskSchedule task3 = new TaskSchedule("s3")
                 .streamIn(samples)
                 .task("t3", AnalyticsProcessor::computeAvg, samples, result, avgResult)
                 .streamOut(avgResult);
         task3.warmup();
         //warmUp(task3);
-        ExecutionTime.printTime(() -> task3.execute());
+        task3.execute();
         System.out
-                .println(String.format(" computing Avg of %s random samples with result %f", arg, avgResult));
+                .println(String.format("TornadoVM computing Avg of %s random samples with result %f", arg, avgResult[0]));
+        
+        double[] finalAvgResult = new double[] {-1};
+        ExecutionTime.printTime(() -> AnalyticsProcessor.computeAvg(samples, jvmresult, finalAvgResult));
+        System.out
+                .println(String.format(" JVM computing Avg of %s random samples with result %f", arg, finalAvgResult[0]));
     
         final double[] taskOutliersResult = new double[3];
         TaskSchedule task41 = new TaskSchedule("s41")
                 .streamIn(samples)
-                .task("t4.1", AnalyticsProcessor::computeMean, samples, taskOutliersResult)
+                .task("t4.1", AnalyticsProcessor::prepareTornadoSumForMeanComputation, samples, taskOutliersResult)
                 .task("t4.2", AnalyticsProcessor::computeStandardDeviation, samples, taskOutliersResult)
                 .task("t4.3", AnalyticsProcessor::tornadoRemoveOutliers, samples, taskOutliersResult)
                 .streamOut(taskOutliersResult);
-//        task41.execute();
+    
+/*
+        TaskSchedule task42 = new TaskSchedule("s42")
+                .streamIn(samples, taskOutliersResult)
+                .task("t4.3", AnalyticsProcessor::tornadoRemoveOutliers, samples, taskOutliersResult)
+                .streamOut(taskOutliersResult);
+*/
+        //        task41.execute();
 //        taskOutliersResult[0] = taskOutliersResult[0] / samples.length;
         
 /*
@@ -104,10 +131,22 @@ public class AnalyticsSampleEngine {
         
         task4.warmup();
 */
-        ExecutionTime.printTime(() -> task41.execute());
+    
+        final double[] jvmOutliersResult = new double[3];
+        ExecutionTime.printTime(() -> {
+            AnalyticsProcessor.prepareTornadoSumForMeanComputation(samples, jvmOutliersResult);
+            AnalyticsProcessor.computeStandardDeviation(samples, jvmOutliersResult);
+            AnalyticsProcessor.tornadoRemoveOutliers(samples, jvmOutliersResult);
+        });
         System.out
                 .println(String
-                        .format(" computing Outliers of %s random samples with mean %f, standard deviation %f and outliers count %f",
+                        .format(" JVM computing Outliers of %s random samples with mean %f, standard deviation %f and outliers count %f",
+                                arg, jvmOutliersResult[0], jvmOutliersResult[1], jvmOutliersResult[2]));
+        
+        task41.execute();
+        System.out
+                .println(String
+                        .format("TornadoVM computing Outliers of %s random samples with mean %f, standard deviation %f and outliers count %f",
                                 arg, taskOutliersResult[0], taskOutliersResult[1], taskOutliersResult[2]));
     }
     

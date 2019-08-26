@@ -2,8 +2,7 @@ package net.sparkworks.e2data;
 
 import uk.ac.manchester.tornado.api.annotations.Parallel;
 import uk.ac.manchester.tornado.api.annotations.Reduce;
-
-import java.util.Objects;
+import uk.ac.manchester.tornado.api.collections.math.TornadoMath;
 
 public class AnalyticsProcessor {
     
@@ -41,15 +40,15 @@ public class AnalyticsProcessor {
         }
     }
     
-    public static void computeAvg(final double[] values, @Reduce double[] result, double avgResult) {
+    public static void computeAvg(final double[] values, @Reduce double[] result, double[] avgResult) {
         result[0] = 0;
         for (@Parallel int i = 0; i < values.length; i++) {
             result[0] += values[i];
         }
-        avgResult = result[0] / values.length;
+        avgResult[0] = result[0] / values.length;
     }
     
-    public static void computeStandardDeviation(final double values[], @Reduce double[] result) {
+    public static void computeStandardDeviation(final double values[], double[] result) {
         int length = values.length;
         result[0] = result[0] / length;
         
@@ -58,14 +57,14 @@ public class AnalyticsProcessor {
         }
     }
     
-    public static void computeMean(final double values[], @Reduce double[] result) {
+    public static void prepareTornadoSumForMeanComputation(final double values[], @Reduce double[] result) {
         for (@Parallel int i = 0; i < values.length; i++) {
             result[0] += values[i];
         }
     }
     
     public static void removeOutliers(final double values[], @Reduce double[] result) {
-        computeMean(values, result);
+        prepareTornadoSumForMeanComputation(values, result);
         result[0] = result[0] / values.length;
         // result[0] holds the mean value now
         computeStandardDeviation(values, result);
@@ -83,6 +82,7 @@ public class AnalyticsProcessor {
     }
     
     public static void tornadoRemoveOutliers(final double values[], double[] result) {
+        //result[1] = TornadoMath.sqrt(result[1] / values.length);
         result[1] = Math.sqrt(result[1] / values.length);
         // result[0] holds the mean value now
         // result[1] holds the stabdard deviation now
