@@ -22,25 +22,19 @@ public class AnalyticsProcessor {
     
     
     
-    public static void computeMin(final double[] values, final @Reduce double[] result) {
-        result[0] = values[0];
-        for (@Parallel int i = 1; i < values.length; i++) {
-            if (values[i] < result[0]) {
-                result[0] = values[i];
-            }
+    public static void computeMin(final double[] values, @Reduce double[] result) {
+        for (@Parallel int i = 0; i < values.length; i++) {
+            result[0] = Math.min(result[0], values[i]);
         }
     }
     
-    public static void computeMax(final double[] values, final @Reduce double[] result) {
-        result[0] = values[0];
-        for (@Parallel int i = 1; i < values.length; i++) {
-            if (values[i] > result[0]) {
-                result[0] = values[i];
-            }
+    public static void computeMax(final double[] values, @Reduce double[] result) {
+        for (@Parallel int i = 0; i < values.length; i++) {
+            result[0] = Math.max(result[0], values[i]);
         }
     }
     
-    public static void computeSum(final double[] values, final @Reduce double[] result) {
+    public static void computeSum(final double[] values, @Reduce double[] result) {
         result[0] = 0;
         for (@Parallel int i = 0; i < values.length; i++) {
             result[0] += values[i];
@@ -52,7 +46,7 @@ public class AnalyticsProcessor {
         result[0] = result[0] / values.length;
     }
     
-    public static void computeStandardDeviation(final double values[], final @Reduce double[] result) {
+    public static void computeStandardDeviation(final double values[], @Reduce double[] result) {
         int length = values.length;
         
         double mean = result[0] / length;
@@ -62,13 +56,13 @@ public class AnalyticsProcessor {
         }
     }
     
-    public static void computeMean(final double values[], final @Reduce double[] result) {
+    public static void computeMean(final double values[], @Reduce double[] result) {
         for (@Parallel int i = 0; i < values.length; i++) {
             result[0] += values[i];
         }
     }
     
-    public static void removeOutliers(final double values[], final @Reduce double[] result) {
+    public static void removeOutliers(final double values[], @Reduce double[] result) {
         computeMean(values, result);
         result[0] = result[0] / values.length;
         // result[0] holds the mean value now
@@ -86,7 +80,7 @@ public class AnalyticsProcessor {
         result[2] = count;
     }
     
-    public static void tornadoRemoveOutliers(final double values[], final @Reduce double[] result) {
+    public static void tornadoRemoveOutliers(final double values[], double[] result) {
         // result[0] holds the mean value now
         // result[1] holds the stabdard deviation now
         double min = result[0] - (2 * result[1]);
