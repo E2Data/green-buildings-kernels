@@ -68,15 +68,16 @@ public class AnalyticsSampleEngine {
         System.out
                 .println(String.format(" computing Sum of %s random samples with result %f", arg, result[0]));
     
+        double avgResult = -1;
         TaskSchedule task3 = new TaskSchedule("s3")
                 .streamIn(samples)
-                .task("t3", AnalyticsProcessor::computeAvg, samples, result)
-                .streamOut(result);
+                .task("t3", AnalyticsProcessor::computeAvg, samples, result, avgResult)
+                .streamOut(avgResult);
         task3.warmup();
         //warmUp(task3);
         ExecutionTime.printTime(() -> task3.execute());
         System.out
-                .println(String.format(" computing Avg of %s random samples with result %f", arg, result[0]));
+                .println(String.format(" computing Avg of %s random samples with result %f", arg, avgResult));
     
         final double[] taskOutliersResult = new double[3];
         TaskSchedule task41 = new TaskSchedule("s41")

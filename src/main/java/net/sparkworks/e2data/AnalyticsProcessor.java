@@ -41,12 +41,12 @@ public class AnalyticsProcessor {
         }
     }
     
-    public static void computeAvg(final double[] values, @Reduce double[] result) {
+    public static void computeAvg(final double[] values, @Reduce double[] result, double avgResult) {
         result[0] = 0;
         for (@Parallel int i = 0; i < values.length; i++) {
             result[0] += values[i];
         }
-        result[0] = result[0] / values.length;
+        avgResult = result[0] / values.length;
     }
     
     public static void computeStandardDeviation(final double values[], @Reduce double[] result) {
