@@ -61,6 +61,8 @@ public class AnalyticsSampleEngine {
         ExecutionTime.printTime(() -> AnalyticsProcessor.computeMin(samples, jvmresult));
         System.out.println(String.format(" JVM computing Min of %s random samples with result %f", arg, jvmresult[0]));
         
+        result[0] = 0;
+        jvmresult[0] = 0;
         TaskSchedule task1 = new TaskSchedule("s1")
                 .streamIn(samples)
                 //                .batch("2GB")
@@ -79,7 +81,9 @@ public class AnalyticsSampleEngine {
                 "######################################################################");
         ExecutionTime.printTime(() -> AnalyticsProcessor.computeMax(samples, jvmresult));
         System.out.println(String.format(" JVM computing Max of %s random samples with result %f", arg, jvmresult[0]));
-        
+    
+        result[0] = 0;
+        jvmresult[0] = 0;
         TaskSchedule task2 = new TaskSchedule("s2")
                 .streamIn(samples)
                 //                .batch("2GB")
@@ -98,7 +102,9 @@ public class AnalyticsSampleEngine {
                 "######################################################################");
         ExecutionTime.printTime(() -> AnalyticsProcessor.computeSum(samples, jvmresult));
         System.out.println(String.format(" JVM computing Sum of %s random samples with result %f", arg, jvmresult[0]));
-        
+    
+        result[0] = 0;
+        jvmresult[0] = 0;
         TaskSchedule task3 = new TaskSchedule("s3")
                 .streamIn(samples)
                 //                .batch("2GB")
