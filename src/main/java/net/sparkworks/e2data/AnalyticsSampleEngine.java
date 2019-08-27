@@ -43,6 +43,7 @@ public class AnalyticsSampleEngine {
         
         TaskSchedule task0 = new TaskSchedule("s0")
                 .streamIn(samples)
+//                .batch("2GB")
                 .task("t0", AnalyticsProcessor::computeMin, samples, result)
                 .streamOut(result);
         task0.warmup();
@@ -57,6 +58,7 @@ public class AnalyticsSampleEngine {
         
         TaskSchedule task1 = new TaskSchedule("s1")
                 .streamIn(samples)
+//                .batch("2GB")
                 .task("t1", AnalyticsProcessor::computeMax, samples, result)
                 .streamOut(result);
         task1.warmup();
@@ -71,6 +73,7 @@ public class AnalyticsSampleEngine {
         
         TaskSchedule task2 = new TaskSchedule("s2")
                 .streamIn(samples)
+//                .batch("2GB")
                 .task("t2", AnalyticsProcessor::computeSum, samples, result)
                 .streamOut(result);
         task2.warmup();
@@ -82,25 +85,29 @@ public class AnalyticsSampleEngine {
         ExecutionTime.printTime(() -> AnalyticsProcessor.computeSum(samples, jvmresult));
         System.out
                 .println(String.format(" JVM computing Sum of %s random samples with result %f", arg, jvmresult[0]));
-    
-        double[] avgResult = new double[] {-1};
+        
         TaskSchedule task3 = new TaskSchedule("s3")
                 .streamIn(samples)
-                .task("t3", AnalyticsProcessor::computeAvg, samples, result, avgResult)
-                .streamOut(avgResult);
+//                .batch("2GB")
+                .task("t3.1", AnalyticsProcessor::computeSum, samples, result)
+                .task("t3.2", AnalyticsProcessor::computeAvg, samples, result)
+                .streamOut(result);
         task3.warmup();
         //warmUp(task3);
         task3.execute();
         System.out
-                .println(String.format("TornadoVM computing Avg of %s random samples with result %f", arg, avgResult[0]));
+                .println(String.format("TornadoVM computing Avg of %s random samples with result %f", arg, result[0]));
         
-        double[] finalAvgResult = new double[] {-1};
-        ExecutionTime.printTime(() -> AnalyticsProcessor.computeAvg(samples, jvmresult, finalAvgResult));
+        ExecutionTime.printTime(() -> {
+            AnalyticsProcessor.computeSum(samples, jvmresult);
+            AnalyticsProcessor.computeAvg(samples, jvmresult);
+        });
         System.out
-                .println(String.format(" JVM computing Avg of %s random samples with result %f", arg, finalAvgResult[0]));
+                .println(String.format(" JVM computing Avg of %s random samples with result %f", arg, jvmresult[0]));
     
         final double[] taskOutliersResult = new double[3];
         TaskSchedule task41 = new TaskSchedule("s41")
+//                .batch("2GB")
                 .streamIn(samples)
                 .task("t4.1", AnalyticsProcessor::prepareTornadoSumForMeanComputation, samples, taskOutliersResult)
                 .task("t4.2", AnalyticsProcessor::computeStandardDeviation, samples, taskOutliersResult)
