@@ -58,7 +58,7 @@ public class AnalyticsSampleEngine {
         System.out.println("\n######################################################################\n" +
                 "############################## JVM Min Kernel ########################\n" +
                 "######################################################################");
-        ExecutionTime.printTime(() -> AnalyticsProcessor.computeMin(samples, jvmresult));
+        ExecutionTime.printTime(() -> AnalyticsProcessor.computeMin(samples, jvmresult), 10);
         System.out.println(String.format(" JVM computing Min of %s random samples with result %f", arg, jvmresult[0]));
         
         result[0] = 0;
@@ -79,7 +79,7 @@ public class AnalyticsSampleEngine {
         System.out.println("\n######################################################################\n" +
                 "############################## JVM Max Kernel ########################\n" +
                 "######################################################################");
-        ExecutionTime.printTime(() -> AnalyticsProcessor.computeMax(samples, jvmresult));
+        ExecutionTime.printTime(() -> AnalyticsProcessor.computeMax(samples, jvmresult), 10);
         System.out.println(String.format(" JVM computing Max of %s random samples with result %f", arg, jvmresult[0]));
     
         result[0] = 0;
@@ -100,7 +100,11 @@ public class AnalyticsSampleEngine {
         System.out.println("\n######################################################################\n" +
                 "############################## JVM Sum Kernel ########################\n" +
                 "######################################################################");
-        ExecutionTime.printTime(() -> AnalyticsProcessor.computeSum(samples, jvmresult));
+        for (int i = 0; i < 10; i++) {
+            AnalyticsProcessor.computeSum(samples, jvmresult);
+            jvmresult[0] = 0;
+        }
+        ExecutionTime.printTime(() -> AnalyticsProcessor.computeSum(samples, jvmresult), 1);
         System.out.println(String.format(" JVM computing Sum of %s random samples with result %f", arg, jvmresult[0]));
     
         result[0] = 0;
@@ -122,10 +126,16 @@ public class AnalyticsSampleEngine {
         System.out.println("\n######################################################################\n" +
                 "############################## JVM Avg Kernel ########################\n" +
                 "######################################################################");
+    
+        for (int i = 0; i < 10; i++) {
+            AnalyticsProcessor.prepareSumForAvg(samples, jvmresult);
+            AnalyticsProcessor.computeAvg(samples, jvmresult);
+            jvmresult[0] = 0;
+        }
         ExecutionTime.printTime(() -> {
             AnalyticsProcessor.prepareSumForAvg(samples, jvmresult);
             AnalyticsProcessor.computeAvg(samples, jvmresult);
-        });
+        }, 1);
         System.out.println(String.format(" JVM computing Avg of %s random samples with result %f", arg, jvmresult[0]));
         
         final double[] taskOutliersResult = new double[3];
@@ -171,13 +181,22 @@ public class AnalyticsSampleEngine {
                 "######################## JVM Outliers Kernel #########################\n" +
                 "######################################################################");
         final double[] jvmOutliersResult = new double[3];
-        ExecutionTime.printTime(() -> {
+    
+        for (int i = 0; i < 10; i++) {
             AnalyticsProcessor.prepareTornadoSumForMeanComputation(samples, jvmOutliersResult);
             AnalyticsProcessor.computeStandardDeviation(samples, jvmOutliersResult);
             AnalyticsProcessor.tornadoRemoveOutliers(samples, jvmOutliersResult);
-        });
+            jvmresult[0] = 0;
+        }
+    
+        final double[] reportJvmOutliersResult = new double[3];
+        ExecutionTime.printTime(() -> {
+            AnalyticsProcessor.prepareTornadoSumForMeanComputation(samples, reportJvmOutliersResult);
+            AnalyticsProcessor.computeStandardDeviation(samples, reportJvmOutliersResult);
+            AnalyticsProcessor.tornadoRemoveOutliers(samples, reportJvmOutliersResult);
+        }, 1);
         System.out.println(String.format(" JVM computing Outliers of %s random samples with mean %f, standard deviation %f and outliers count %f",
-                arg, jvmOutliersResult[0], jvmOutliersResult[1], jvmOutliersResult[2]));
+                arg, reportJvmOutliersResult[0], reportJvmOutliersResult[1], reportJvmOutliersResult[2]));
     }
     
     private static boolean isNumeric(final String arg) {
