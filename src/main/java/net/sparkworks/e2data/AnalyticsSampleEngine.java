@@ -58,9 +58,9 @@ public class AnalyticsSampleEngine {
         }
     
         // 2. Run parallel on the GPU with Tornado
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
         task0.execute();
-        long end = System.currentTimeMillis();
+        long end = System.nanoTime();
     
     
         // Run sequential
@@ -70,9 +70,9 @@ public class AnalyticsSampleEngine {
         }
     
         // 2. Run the sequential code
-        long startSequential = System.currentTimeMillis();
+        long startSequential = System.nanoTime();
         AnalyticsProcessor.computeMin(samples, jvmresult);
-        long endSequential = System.currentTimeMillis();
+        long endSequential = System.nanoTime();
     
         // Compute Gigaflops and performance
         long msecGPUElapsedTime = (end - start);
@@ -84,8 +84,8 @@ public class AnalyticsSampleEngine {
         String formatGPUFGlops = String.format("%.2f", gpuGigaFlops);
         String formatCPUFGlops = String.format("%.2f", cpuGigaFlops);
     
-        System.out.println("\tMIN Kernel CPU Execution: " + formatCPUFGlops + " GFlops, Total time = " + (endSequential - startSequential) + " ms");
-        System.out.println("\tMIN Kernel GPU Execution: " + formatGPUFGlops + " GFlops, Total Time = " + (end - start) + " ms");
+        System.out.println("\tMIN Kernel CPU Execution: " + formatCPUFGlops + " GFlops, Total time = " + (endSequential - startSequential) + " ns");
+        System.out.println("\tMIN Kernel GPU Execution: " + formatGPUFGlops + " GFlops, Total Time = " + (end - start) + " ns");
         System.out.println("\tMIN Kernel Speedup: " + ((endSequential - startSequential) / (end - start)) + "x");
         
         result[0] = 0;
@@ -109,9 +109,9 @@ public class AnalyticsSampleEngine {
         }
     
         // 2. Run parallel on the GPU with Tornado
-        start = System.currentTimeMillis();
+        start = System.nanoTime();
         task1.execute();
-        end = System.currentTimeMillis();
+        end = System.nanoTime();
     
     
         // Run sequential
@@ -121,9 +121,9 @@ public class AnalyticsSampleEngine {
         }
     
         // 2. Run the sequential code
-        startSequential = System.currentTimeMillis();
+        startSequential = System.nanoTime();
         AnalyticsProcessor.computeMax(samples, jvmresult);
-        endSequential = System.currentTimeMillis();
+        endSequential = System.nanoTime();
     
         // Compute Gigaflops and performance
         msecGPUElapsedTime = (end - start);
@@ -135,8 +135,8 @@ public class AnalyticsSampleEngine {
         formatGPUFGlops = String.format("%.2f", gpuGigaFlops);
         formatCPUFGlops = String.format("%.2f", cpuGigaFlops);
     
-        System.out.println("\tMAX Kernel CPU Execution: " + formatCPUFGlops + " GFlops, Total time = " + (endSequential - startSequential) + " ms");
-        System.out.println("\tMAX Kernel GPU Execution: " + formatGPUFGlops + " GFlops, Total Time = " + (end - start) + " ms");
+        System.out.println("\tMAX Kernel CPU Execution: " + formatCPUFGlops + " GFlops, Total time = " + (endSequential - startSequential) + " ns");
+        System.out.println("\tMAX Kernel GPU Execution: " + formatGPUFGlops + " GFlops, Total Time = " + (end - start) + " ns");
         System.out.println("\tMAX Kernel Speedup: " + ((endSequential - startSequential) / (end - start)) + "x");
         
         result[0] = 0;
@@ -159,9 +159,9 @@ public class AnalyticsSampleEngine {
         }
     
         // 2. Run parallel on the GPU with Tornado
-        start = System.currentTimeMillis();
+        start = System.nanoTime();
         task2.execute();
-        end = System.currentTimeMillis();
+        end = System.nanoTime();
     
     
         // Run sequential
@@ -171,9 +171,9 @@ public class AnalyticsSampleEngine {
         }
     
         // 2. Run the sequential code
-        startSequential = System.currentTimeMillis();
+        startSequential = System.nanoTime();
         AnalyticsProcessor.computeSum(samples, jvmresult);
-        endSequential = System.currentTimeMillis();
+        endSequential = System.nanoTime();
     
         // Compute Gigaflops and performance
         msecGPUElapsedTime = (end - start);
@@ -185,8 +185,8 @@ public class AnalyticsSampleEngine {
         formatGPUFGlops = String.format("%.2f", gpuGigaFlops);
         formatCPUFGlops = String.format("%.2f", cpuGigaFlops);
     
-        System.out.println("\tSUM Kernel CPU Execution: " + formatCPUFGlops + " GFlops, Total time = " + (endSequential - startSequential) + " ms");
-        System.out.println("\tSUM Kernel GPU Execution: " + formatGPUFGlops + " GFlops, Total Time = " + (end - start) + " ms");
+        System.out.println("\tSUM Kernel CPU Execution: " + formatCPUFGlops + " GFlops, Total time = " + (endSequential - startSequential) + " ns");
+        System.out.println("\tSUM Kernel GPU Execution: " + formatGPUFGlops + " GFlops, Total Time = " + (end - start) + " ns");
         System.out.println("\tSUM Kernel Speedup: " + ((endSequential - startSequential) / (end - start)) + "x");
     
         
@@ -211,9 +211,9 @@ public class AnalyticsSampleEngine {
         }
     
         // 2. Run parallel on the GPU with Tornado
-        start = System.currentTimeMillis();
+        start = System.nanoTime();
         task3.execute();
-        end = System.currentTimeMillis();
+        end = System.nanoTime();
     
     
         // Run sequential
@@ -225,11 +225,11 @@ public class AnalyticsSampleEngine {
         }
     
         // 2. Run the sequential code
-        startSequential = System.currentTimeMillis();
+        startSequential = System.nanoTime();
         AnalyticsProcessor.prepareSumForAvg(samples, jvmresult);
         AnalyticsProcessor.computeAvg(samples, jvmresult);
         jvmresult[0] = 0;
-        endSequential = System.currentTimeMillis();
+        endSequential = System.nanoTime();
     
         // Compute Gigaflops and performance
         msecGPUElapsedTime = (end - start);
@@ -241,8 +241,8 @@ public class AnalyticsSampleEngine {
         formatGPUFGlops = String.format("%.2f", gpuGigaFlops);
         formatCPUFGlops = String.format("%.2f", cpuGigaFlops);
     
-        System.out.println("\tAVG Kernel CPU Execution: " + formatCPUFGlops + " GFlops, Total time = " + (endSequential - startSequential) + " ms");
-        System.out.println("\tAVG Kernel GPU Execution: " + formatGPUFGlops + " GFlops, Total Time = " + (end - start) + " ms");
+        System.out.println("\tAVG Kernel CPU Execution: " + formatCPUFGlops + " GFlops, Total time = " + (endSequential - startSequential) + " ns");
+        System.out.println("\tAVG Kernel GPU Execution: " + formatGPUFGlops + " GFlops, Total Time = " + (end - start) + " ns");
         System.out.println("\tAVG Kernel Speedup: " + ((endSequential - startSequential) / (end - start)) + "x");
     
         start = 0;
@@ -287,9 +287,9 @@ public class AnalyticsSampleEngine {
         }
     
         // 2. Run parallel on the GPU with Tornado
-        start = System.currentTimeMillis();
+        start = System.nanoTime();
         t.execute();
-        end = System.currentTimeMillis();
+        end = System.nanoTime();
     
         // Run sequential
         // 1. Warm up sequential
@@ -298,9 +298,9 @@ public class AnalyticsSampleEngine {
         }
     
         // 2. Run the sequential code
-        startSequential = System.currentTimeMillis();
+        startSequential = System.nanoTime();
         matrixMultiplication(rawValues, windowMin, windowMax, windowAverage, outliers, size, window_size);
-        endSequential = System.currentTimeMillis();
+        endSequential = System.nanoTime();
     
         // Compute Gigaflops and performance
         msecGPUElapsedTime = (end - start);
@@ -312,8 +312,8 @@ public class AnalyticsSampleEngine {
         formatGPUFGlops = String.format("%.2f", gpuGigaFlops);
         formatCPUFGlops = String.format("%.2f", cpuGigaFlops);
     
-        System.out.println("\tOutliers Kernel CPU Execution: " + formatCPUFGlops + " GFlops, Total time = " + (endSequential - startSequential) + " ms");
-        System.out.println("\tOutliers Kernel GPU Execution: " + formatGPUFGlops + " GFlops, Total Time = " + (end - start) + " ms");
+        System.out.println("\tOutliers Kernel CPU Execution: " + formatCPUFGlops + " GFlops, Total time = " + (endSequential - startSequential) + " ns");
+        System.out.println("\tOutliers Kernel GPU Execution: " + formatGPUFGlops + " GFlops, Total Time = " + (end - start) + " ns");
         System.out.println("\tOutliers Kernel Speedup: " + ((endSequential - startSequential) / (end - start)) + "x");
     
     
