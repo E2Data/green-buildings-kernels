@@ -1,17 +1,13 @@
 package net.sparkworks.e2data;
 
 import uk.ac.manchester.tornado.api.TaskSchedule;
+import uk.ac.manchester.tornado.api.common.TornadoDevice;
+import uk.ac.manchester.tornado.api.runtime.TornadoRuntime;
 
 import java.util.Random;
 import java.util.stream.IntStream;
 
-import static net.sparkworks.e2data.WindowOperations.matrixMultiplication;
-
 public class AnalyticsSampleEngine {
-    
-    static final double LOWER_RANDOM_BOUND = 0d;
-    
-    static final double UPPER_RANDOM_BOUND = 150d;
     
     public static final int WARMING_UP_ITERATIONS = 15;
     
@@ -21,71 +17,46 @@ public class AnalyticsSampleEngine {
         }
         final String arg = args[0];
         if (isNumeric(arg)) {
-            final double[] samples = generateRandomValuesOfSizeWithOutliers(Integer.parseInt(arg));
+            final float[] samples = generateRandomValuesOfSizeWithOutliers(Integer.parseInt(arg));
             executeAnalytics(samples, args);
         } else {
-            try {
-                final double[] samples = CsvUtils.parseSamplesFromCsv(arg);
-                executeAnalytics(samples, args);
-            } catch (Exception e) {
-                System.out.println("Parsing csv file failed, please check the file format");
-                e.printStackTrace();
-            }
+            throw new RuntimeException("Please provide proper data size");
         }
     }
     
-    private static void warmUp(TaskSchedule taskSchedule) {
-        for (int i = 0; i < 50; i++) {
-            taskSchedule.execute();
-        }
-    }
+    private static void executeAnalytics(final float[] samples, final String... args) {
+        
+        final float[] result = new float[1];
+        
+        final float[] jvmresult = new float[1];
     
-    private static void executeAnalytics(final double[] samples, final String... args) {
-        
-        final double[] result = new double[1];
-        
-        final double[] jvmresult = new double[1];
+        TornadoDevice device = TornadoRuntime.getTornadoRuntime().getDriver(0).getDevice(0);
+        System.out.println("TornadoVM on Device: " + device.getDeviceName());
         
         TaskSchedule task0 = new TaskSchedule("s0")
                 .streamIn(samples)
-                //                .batch("2GB")
                 .task("t0", AnalyticsProcessor::computeMin, samples, result)
                 .streamOut(result);
-    
-        // 1. Warm up Tornado
+        task0.mapAllTo(device);
+        
         for (int i = 0; i < WARMING_UP_ITERATIONS; i++) {
             task0.execute();
         }
-    
-        // 2. Run parallel on the GPU with Tornado
+        
         long start = System.nanoTime();
         task0.execute();
         long end = System.nanoTime();
-    
-    
-        // Run sequential
-        // 1. Warm up sequential
+        
         for (int i = 0; i < WARMING_UP_ITERATIONS; i++) {
             AnalyticsProcessor.computeMin(samples, jvmresult);
         }
-    
-        // 2. Run the sequential code
+        
         long startSequential = System.nanoTime();
         AnalyticsProcessor.computeMin(samples, jvmresult);
         long endSequential = System.nanoTime();
     
-        // Compute Gigaflops and performance
-        long msecGPUElapsedTime = (end - start);
-        long msecCPUElaptedTime = (endSequential - startSequential);
-        double flops = 2 * Math.pow(samples.length, 3);
-        double gpuGigaFlops = (1.0E-9 * flops) / (msecGPUElapsedTime / 1000.0f);
-        double cpuGigaFlops = (1.0E-9 * flops) / (msecCPUElaptedTime / 1000.0f);
-    
-        String formatGPUFGlops = String.format("%.2f", gpuGigaFlops);
-        String formatCPUFGlops = String.format("%.2f", cpuGigaFlops);
-    
-        System.out.println("\tMIN Kernel CPU Execution: " + formatCPUFGlops + " GFlops, Total time = " + (endSequential - startSequential) + " ns");
-        System.out.println("\tMIN Kernel GPU Execution: " + formatGPUFGlops + " GFlops, Total Time = " + (end - start) + " ns");
+        System.out.println("\tMIN Kernel CPU Execution: Total time = " + (endSequential - startSequential) + " ns");
+        System.out.println("\tMIN Kernel GPU Execution: Total Time = " + (end - start) + " ns");
         System.out.println("\tMIN Kernel Speedup: " + ((endSequential - startSequential) / (end - start)) + "x");
         
         result[0] = 0;
@@ -98,45 +69,32 @@ public class AnalyticsSampleEngine {
         
         TaskSchedule task1 = new TaskSchedule("s1")
                 .streamIn(samples)
-                //                .batch("2GB")
                 .task("t1", AnalyticsProcessor::computeMax, samples, result)
                 .streamOut(result);
+        task1.mapAllTo(device);
         task1.warmup();
         
-        // 1. Warm up Tornado
         for (int i = 0; i < WARMING_UP_ITERATIONS; i++) {
             task1.execute();
         }
-    
-        // 2. Run parallel on the GPU with Tornado
+        
         start = System.nanoTime();
         task1.execute();
         end = System.nanoTime();
     
     
-        // Run sequential
-        // 1. Warm up sequential
         for (int i = 0; i < WARMING_UP_ITERATIONS; i++) {
             AnalyticsProcessor.computeMax(samples, jvmresult);
         }
     
-        // 2. Run the sequential code
+
         startSequential = System.nanoTime();
         AnalyticsProcessor.computeMax(samples, jvmresult);
         endSequential = System.nanoTime();
     
-        // Compute Gigaflops and performance
-        msecGPUElapsedTime = (end - start);
-        msecCPUElaptedTime = (endSequential - startSequential);
-        flops = 2 * Math.pow(samples.length, 3);
-        gpuGigaFlops = (1.0E-9 * flops) / (msecGPUElapsedTime / 1000.0f);
-        cpuGigaFlops = (1.0E-9 * flops) / (msecCPUElaptedTime / 1000.0f);
-    
-        formatGPUFGlops = String.format("%.2f", gpuGigaFlops);
-        formatCPUFGlops = String.format("%.2f", cpuGigaFlops);
-    
-        System.out.println("\tMAX Kernel CPU Execution: " + formatCPUFGlops + " GFlops, Total time = " + (endSequential - startSequential) + " ns");
-        System.out.println("\tMAX Kernel GPU Execution: " + formatGPUFGlops + " GFlops, Total Time = " + (end - start) + " ns");
+
+        System.out.println("\tMAX Kernel CPU Execution:  Total time = " + (endSequential - startSequential) + " ns");
+        System.out.println("\tMAX Kernel GPU Execution: Total Time = " + (end - start) + " ns");
         System.out.println("\tMAX Kernel Speedup: " + ((endSequential - startSequential) / (end - start)) + "x");
         
         result[0] = 0;
@@ -149,44 +107,32 @@ public class AnalyticsSampleEngine {
     
         TaskSchedule task2 = new TaskSchedule("s2")
                 .streamIn(samples)
-                //                .batch("2GB")
                 .task("t2", AnalyticsProcessor::computeSum, samples, result)
                 .streamOut(result);
-    
-        // 1. Warm up Tornado
+        task2.mapAllTo(device);
+        
         for (int i = 0; i < WARMING_UP_ITERATIONS; i++) {
             task2.execute();
         }
     
-        // 2. Run parallel on the GPU with Tornado
+        
         start = System.nanoTime();
         task2.execute();
         end = System.nanoTime();
     
     
-        // Run sequential
-        // 1. Warm up sequential
+        
         for (int i = 0; i < WARMING_UP_ITERATIONS; i++) {
             AnalyticsProcessor.computeSum(samples, jvmresult);
         }
     
-        // 2. Run the sequential code
+        
         startSequential = System.nanoTime();
         AnalyticsProcessor.computeSum(samples, jvmresult);
         endSequential = System.nanoTime();
     
-        // Compute Gigaflops and performance
-        msecGPUElapsedTime = (end - start);
-        msecCPUElaptedTime = (endSequential - startSequential);
-        flops = 2 * Math.pow(samples.length, 3);
-        gpuGigaFlops = (1.0E-9 * flops) / (msecGPUElapsedTime / 1000.0f);
-        cpuGigaFlops = (1.0E-9 * flops) / (msecCPUElaptedTime / 1000.0f);
-    
-        formatGPUFGlops = String.format("%.2f", gpuGigaFlops);
-        formatCPUFGlops = String.format("%.2f", cpuGigaFlops);
-    
-        System.out.println("\tSUM Kernel CPU Execution: " + formatCPUFGlops + " GFlops, Total time = " + (endSequential - startSequential) + " ns");
-        System.out.println("\tSUM Kernel GPU Execution: " + formatGPUFGlops + " GFlops, Total Time = " + (end - start) + " ns");
+        System.out.println("\tSUM Kernel CPU Execution: Total time = " + (endSequential - startSequential) + " ns");
+        System.out.println("\tSUM Kernel GPU Execution: Total Time = " + (end - start) + " ns");
         System.out.println("\tSUM Kernel Speedup: " + ((endSequential - startSequential) / (end - start)) + "x");
     
         
@@ -200,49 +146,32 @@ public class AnalyticsSampleEngine {
         
         TaskSchedule task3 = new TaskSchedule("s3")
                 .streamIn(samples)
-                //                .batch("2GB")
                 .task("t3.1", AnalyticsProcessor::prepareSumForAvg, samples, result)
                 .task("t3.2", AnalyticsProcessor::computeAvg, samples, result)
                 .streamOut(result);
-    
-        // 1. Warm up Tornado
+        task3.mapAllTo(device);
         for (int i = 0; i < WARMING_UP_ITERATIONS; i++) {
             task3.execute();
         }
-    
-        // 2. Run parallel on the GPU with Tornado
+        
         start = System.nanoTime();
         task3.execute();
         end = System.nanoTime();
     
     
-        // Run sequential
-        // 1. Warm up sequential
         for (int i = 0; i < WARMING_UP_ITERATIONS; i++) {
             AnalyticsProcessor.prepareSumForAvg(samples, jvmresult);
             AnalyticsProcessor.computeAvg(samples, jvmresult);
             jvmresult[0] = 0;
         }
-    
-        // 2. Run the sequential code
         startSequential = System.nanoTime();
         AnalyticsProcessor.prepareSumForAvg(samples, jvmresult);
         AnalyticsProcessor.computeAvg(samples, jvmresult);
         jvmresult[0] = 0;
         endSequential = System.nanoTime();
     
-        // Compute Gigaflops and performance
-        msecGPUElapsedTime = (end - start);
-        msecCPUElaptedTime = (endSequential - startSequential);
-        flops = 2 * Math.pow(samples.length, 3);
-        gpuGigaFlops = (1.0E-9 * flops) / (msecGPUElapsedTime / 1000.0f);
-        cpuGigaFlops = (1.0E-9 * flops) / (msecCPUElaptedTime / 1000.0f);
-    
-        formatGPUFGlops = String.format("%.2f", gpuGigaFlops);
-        formatCPUFGlops = String.format("%.2f", cpuGigaFlops);
-    
-        System.out.println("\tAVG Kernel CPU Execution: " + formatCPUFGlops + " GFlops, Total time = " + (endSequential - startSequential) + " ns");
-        System.out.println("\tAVG Kernel GPU Execution: " + formatGPUFGlops + " GFlops, Total Time = " + (end - start) + " ns");
+        System.out.println("\tAVG Kernel CPU Execution: Total time = " + (endSequential - startSequential) + " ns");
+        System.out.println("\tAVG Kernel GPU Execution: Total Time = " + (end - start) + " ns");
         System.out.println("\tAVG Kernel Speedup: " + ((endSequential - startSequential) / (end - start)) + "x");
     
         start = 0;
@@ -275,45 +204,33 @@ public class AnalyticsSampleEngine {
             rawValues[idx] = r.nextFloat();
         });
     
-        //@formatter:off
+
         TaskSchedule t = new TaskSchedule("s0")
-                .task("t0", net.sparkworks.e2data.WindowOperations::matrixMultiplication, rawValues, windowMin, windowMax, windowAverage, outliers, size, window_size)
+                .task("t0", WindowOperations::matrixMultiplication, rawValues, windowMin, windowMax, windowAverage, outliers, size, window_size)
                 .streamOut(outliers);
-        //@formatter:on
-    
-        // 1. Warm up Tornado
+
+        t.mapAllTo(device);
+
         for (int i = 0; i < WARMING_UP_ITERATIONS; i++) {
             t.execute();
         }
     
-        // 2. Run parallel on the GPU with Tornado
+
         start = System.nanoTime();
         t.execute();
         end = System.nanoTime();
     
-        // Run sequential
-        // 1. Warm up sequential
         for (int i = 0; i < WARMING_UP_ITERATIONS; i++) {
-            matrixMultiplication(rawValues, windowMin, windowMax, windowAverage, outliers, size, window_size);
+            WindowOperations.matrixMultiplication(rawValues, windowMin, windowMax, windowAverage, outliers, size, window_size);
         }
     
-        // 2. Run the sequential code
+
         startSequential = System.nanoTime();
-        matrixMultiplication(rawValues, windowMin, windowMax, windowAverage, outliers, size, window_size);
+        WindowOperations.matrixMultiplication(rawValues, windowMin, windowMax, windowAverage, outliers, size, window_size);
         endSequential = System.nanoTime();
-    
-        // Compute Gigaflops and performance
-        msecGPUElapsedTime = (end - start);
-        msecCPUElaptedTime = (endSequential - startSequential);
-        flops = 2 * Math.pow(size, 3);
-        gpuGigaFlops = (1.0E-9 * flops) / (msecGPUElapsedTime / 1000.0f);
-        cpuGigaFlops = (1.0E-9 * flops) / (msecCPUElaptedTime / 1000.0f);
-    
-        formatGPUFGlops = String.format("%.2f", gpuGigaFlops);
-        formatCPUFGlops = String.format("%.2f", cpuGigaFlops);
-    
-        System.out.println("\tOutliers Kernel CPU Execution: " + formatCPUFGlops + " GFlops, Total time = " + (endSequential - startSequential) + " ns");
-        System.out.println("\tOutliers Kernel GPU Execution: " + formatGPUFGlops + " GFlops, Total Time = " + (end - start) + " ns");
+        
+        System.out.println("\tOutliers Kernel CPU Execution: Total time = " + (endSequential - startSequential) + " ns");
+        System.out.println("\tOutliers Kernel GPU Execution: Total Time = " + (end - start) + " ns");
         System.out.println("\tOutliers Kernel Speedup: " + ((endSequential - startSequential) / (end - start)) + "x");
     
     
@@ -323,15 +240,13 @@ public class AnalyticsSampleEngine {
         return arg.chars().allMatch(Character::isDigit);
     }
     
-    private static double[] generateRandomValuesOfSize(final long size) {
-        return new Random().doubles(size, LOWER_RANDOM_BOUND, UPPER_RANDOM_BOUND).toArray();
-    }
-    
-    private static double[] generateRandomValuesOfSizeWithOutliers(final int size) {
-        final double[] doubles = new Random().doubles(size, LOWER_RANDOM_BOUND, UPPER_RANDOM_BOUND).toArray();
-        doubles[(size - 2)] = UPPER_RANDOM_BOUND + (5 * UPPER_RANDOM_BOUND);
-        doubles[(size - 1)] = UPPER_RANDOM_BOUND + (10 * UPPER_RANDOM_BOUND);
-        return doubles;
+    private static float[] generateRandomValuesOfSizeWithOutliers(final int size) {
+        float[] randoms = new float[size];
+        Random r = new Random();
+        for (int i = 0; i < size; i++) {
+            randoms[i] = r.nextFloat();
+        }
+        return randoms;
     }
     
 }
